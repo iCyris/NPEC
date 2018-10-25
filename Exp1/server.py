@@ -16,7 +16,7 @@ client_list = {}
 def room_login(username, password):
     """
     : function check_user(): on user_app.py, for login check.
-    : param mark: 0 for True, 1 for False, 2 for broadcast message.
+    : param mark: 0 for True, 1 for False, 2 for broadcast message, 3 for private message.
     """
     if (check_user(username, password)):
         mesg =  "\033[1;31;40m[System]\033[0m Login Success!"
@@ -43,6 +43,7 @@ def catch_order(data, address):
     : order '/login': Login
     : order '/reg': Register
     : order '/send': Send mesg to other users online
+    : order '/exit': Exit the Chat Room
     : param data: The data (after dealing) receive from client
     """
 
@@ -65,7 +66,27 @@ def catch_order(data, address):
         return mark, message
     
     elif(data[0] == '/send'):
-        pass
+        """
+        : param data: data[0]=order, data[1]=target_username, after data[1] is the message
+        """
+        target_username = data[1]
+
+        mark = 1 # No such user
+        
+        if (check_online(client_list, address)):
+            if (get_target_user_address(client_list, target_username)):
+                message = recovery_sentence(data)
+                message = message.split(' ', 2)[2] # Get the true message
+                message = "\033[1;32;40m" + "[Private] " +target_username +  "\033[0m" + ' ---> ' + message
+                mark = 3 # Private mode
+                return mark, message
+
+            if (mark == 1):
+                message = "\033[1;31;40m[System]\033[0m Sorry, the, user is not online"
+                return mark, message
+        else:
+            mark = 1
+            message = "\033[1;31;40m[System]\033[0m Please login first!"
 
     elif(data[0] == '/exit'):
         mark = 1
@@ -81,7 +102,7 @@ def catch_order(data, address):
         for key, value in client_list.items():
             if(value == address):
                 mark = 2 # broadcast mode
-                message = '\033[1;34;40m' + key + '\033[0m' + ' ---> ' + message
+                message = '\033[1;34;40m' + "[Public] " + key + '\033[0m' + ' ---> ' + message
                 return mark, message
         
         mark = 1 # False
@@ -104,6 +125,18 @@ def get_key(dictin, target):
             return key
     return 
 
+def get_target_user_address(input_list, name):
+    for key in input_list:
+        if (name == key):
+            return input_list[key]
+    return False # Not found
+
+def check_online(input_list, address):
+    for value in input_list.values():
+        if (value == address):
+            return True
+    return False
+
 def server(host, port, args):
     """
     : param client_list: Store the name and address who is online (dict type, 'name':'address (ip + port)')
@@ -125,11 +158,15 @@ def server(host, port, args):
             if(t_mark == 0 or t_mark == 1):
                 sock.sendto(mesg_to_client.encode('utf-8'), address)
 
-            if(t_mark == 2):
+            if(t_mark == 2): # broadcast
                 for addr in client_list.values():
                     print(addr)
                     sock.sendto(mesg_to_client.encode('utf-8'), addr)
                 print()
+            
+            if(t_mark == 3): # private chat
+                addr = get_target_user_address(client_list, dealed_data[1])
+                sock.sendto(mesg_to_client.encode('utf-8'), addr)
             
         except Exception as e:
             mesg_to_client = "\033[1;31;40m[System]\033[0m Something error... please contact zz for help~"
