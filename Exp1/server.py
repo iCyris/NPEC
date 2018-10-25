@@ -173,9 +173,9 @@ def server(host, port, args):
             sock.sendto(mesg_to_client.encode('utf-8'), address)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Chat Room V1.0') #创建解析对象
+    parser = argparse.ArgumentParser(description='Chat Room V1.0')
     parser.add_argument('host', help='server listening interface')
     parser.add_argument('-p', '--port', metavar='PORT', type=int, default=1060,
                         help='server port (default 1060)')
-    args = parser.parse_args() #进行解析
+    args = parser.parse_args()
     server(args.host, args.port, args)
