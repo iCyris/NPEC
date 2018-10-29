@@ -23,7 +23,7 @@ def room_login(username, password):
         mark = 0
         return mark, mesg
     else:
-        mesg = "\033[1;31;40m[System]\033[0m Password error or the user dosn't exit, Please try again."
+        mesg = "\033[1;31;40m[System]\033[0m Wrong password or the user donsn't exit, Please try again."
         mark = 1
         return mark, mesg
 
@@ -75,9 +75,10 @@ def catch_order(data, address):
         
         if (check_online(client_list, address)):
             if (get_target_user_address(client_list, target_username)):
+                own_name = get_key(client_list, address)
                 message = recovery_sentence(data)
                 message = message.split(' ', 2)[2] # Get the true message
-                message = "\033[1;32;40m" + "[Private] " +target_username +  "\033[0m" + ' ---> ' + message
+                message = "\033[1;32;40m" + "[Private] " + own_name +  "\033[0m" + ' ---> ' + message
                 mark = 3 # Private mode
                 return mark, message
 
@@ -169,13 +170,13 @@ def server(host, port, args):
                 sock.sendto(mesg_to_client.encode('utf-8'), addr)
             
         except Exception as e:
-            mesg_to_client = "\033[1;31;40m[System]\033[0m Something error... please contact zz for help~"
+            mesg_to_client = "\033[1;31;40m[System]\033[0m Please login first or use the correct order."
             sock.sendto(mesg_to_client.encode('utf-8'), address)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Chat Room V1.0')
+    parser = argparse.ArgumentParser(description='Chat Room V1.0') #创建解析对象
     parser.add_argument('host', help='server listening interface')
     parser.add_argument('-p', '--port', metavar='PORT', type=int, default=1060,
                         help='server port (default 1060)')
-    args = parser.parse_args()
+    args = parser.parse_args() #进行解析
     server(args.host, args.port, args)
